@@ -70,7 +70,7 @@ function printReceipt() {
 }
 
 function SendMessage(message) {
-    var port = chrome.runtime.connectNative('com.printer_utility.print');
+    var port = chrome.runtime.connectNative('com.printer_utility.printer');
     port.onMessage.addListener(function (msg) {
         console.log("Received" + msg);
     });

@@ -6,18 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript" src="canvas-text-wrapper.js"></script>
 </head>
 
 <body>
-
-    <canvas style="border: 5px,solid;" width="250" id="canvas">
+    <button onclick="sendMessage()"></button>
+    <canvas style="border: 5px,solid;" width="250" height="100" id="canvas">
 
     </canvas>
 
     <div>
         <h1>Настройка чека</h1>
         <div id="labels">
-
+            <!-- <div id="header">
+                <div id="column0">
+                    <div>
+                        <p>Название</p>
+                        <input id="columnName" type="text">
+                    </div>
+                    <div>
+                        <p>Значения</p>
+                        <input id="columnValue" type="text">
+                    </div>
+                    <div>
+                        <p>Заполнение</p>
+                        <input id="columnWidth" min="0" value="1" type="number">
+                    </div>
+                    <button data-column-index="0" id="removeColumnBtn" onclick="remoeccolumn()">Удалить колонку</button>
+                </div>
+                <button id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
+            </div> -->
         </div>
         <button id="addLabel" onclick="addLabel()">Добавить</button>
     </div>
@@ -26,20 +44,25 @@
 
 
 <script>
+    function sendMessage() {
+        var event = document.createEvent('Event');
+        event.initEvent('hello');
+        document.dispatchEvent(event);
+    }
     let labelsDiv = document.getElementById("labels");
     let canvas = document.getElementById("canvas");
     let ctx = canvas.getContext("2d");
-    //ctx.fillText("sdsd")
-    DrawText("right", 15, "bold");
+
     const labelPattern = `
         <p id="index">{number}</p>
                 <div id="area">
                     <p>Поле</p>
-                    <select id="type">
+                    <select id="type" onchange="changeAreaType()" onchange="RedrawReciept()">
                         <option value="text">Текст</option>
                         <option value="image">Изображение</option>
-                        <option value="value">Значение</option>
-                        <option value="total">Итог</option>
+                        <option value="indent">Отступ</option>
+                        <option value="table">Таблица значений</option>
+                        <option value="line">Линия</option>
                     </select>
                 </div>
                 <div id="value">
@@ -76,10 +99,110 @@
         <p>Текст</p>
         <input id="text" type="text" onchange="RedrawReciept()">
     `;
+    const imageAreaPattern = `
+    <div>
+        <p>Выравнивание</p>
+        <select id="align" onchange="RedrawReciept()">
+            <option value="left">Лево</option>
+            <option value="center">Центр</option>
+            <option value="right">Право</option>
+        </select>
+    </div>
+    <div>
+        <p>Изображение</p>
+        <input id="image" type="file"accept="image/*" onchange="RedrawReciept()">
+    </div>
+    <div>
+        <p>Ширина</p>
+        <input id="width" type="number" min="1" value="100" onchange="RedrawReciept()">
+    </div>
+    <div>
+        <p>Высота</p>
+        <input id="height" type="number" min="1" value="100" onchange="RedrawReciept()">
+    </div>
+    `;
+    const indentAreaPattern = `
+    <div>
+        <p>Отступ</p>
+        <input id="indent" type="number" min="1" value="1" onchange="RedrawReciept()">
+    </div>
+    `;
+    const tableArePattern = `
+    <div id="header">
+        <button  id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
+    </div>
+    `;
+    const lineAreaPattern = `
+    <div>
+        <p>Символ</p>
+        <input id="symbol" value="-" onchange="RedrawReciept()">
+    <div>
+    `;
+    const columnPattern = `
+        <div>
+            <p>Название</p>
+            <input id="columnName" type="text">
+        </div>
+        <div>
+            <p>Значения</p>
+            <input id="columnValue" type="text">
+        </div>
+        <div>
+            <p>Заполнение</p>
+            <input id="columnWidth" min="0" value="1" type="number">
+        </div>
+        <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить колонку</button>
+    `;
+
+    function removeColumn() {
+        var column = event.target.parentElement;
+        var header = column.parentElement;
+        var index = Array.prototype.indexOf.call(header.querySelectorAll("#column"), column);
+        column.remove();
+    }
+    function addColumn() {
+        var header = event.target.parentElement;
+
+        var element = stringToHTML(columnPattern);
+        element.setAttribute("id", "column")
+        header.appendChild(element);
+    }
+
+
+
+    function changeAreaType() {
+        var target = event.target.parentElement.parentElement;
+
+        var btn = target.querySelector("#removeLabel");
+        var index = btn.dataset.index;
+
+        var type = target.querySelector("#type");
+
+        switch (type.value) {
+            case "text":
+                addAreaPattern(target, textAreaPattern);
+                break;
+            case "image":
+                addAreaPattern(target, imageAreaPattern);
+                break;
+            case "indent":
+                addAreaPattern(target, indentAreaPattern);
+                break;
+            case "table":
+                addAreaPattern(target, tableArePattern);
+                break;
+            case "line":
+                addAreaPattern(target, lineAreaPattern);
+                break;
+            default:
+                break;
+        }
+    }
     function addLabel() {
         var index = labelsDiv.querySelectorAll("[id^=label]").length;
         var pattern = labelPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
         var element = stringToHTML(pattern);
+        element.querySelector("#type").value = "text";
         element.setAttribute("id", `label${index}`);
         labelsDiv.appendChild(element);
 
@@ -108,11 +231,12 @@
 
 
     function RedrawReciept() {
-         ctx.fillStyle = "white";
-         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        //ctx.clearRect(0,0,c.width,c.height);
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
 
         var labels = labelsDiv.querySelectorAll("[id^=label]");
+        var prevYPos = 0;
         labels.forEach(label => {
             var type = label.querySelector("#type");
             var valueArea = label.querySelector("#value");
@@ -123,42 +247,112 @@
                     var align = valueArea.querySelector("#align").value;
                     var underline = valueArea.querySelector("#underline").value;
                     var fontSize = valueArea.querySelector("#fontSize").value;
+                    var style = valueArea.querySelector("#style").value;
                     var text = valueArea.querySelector("#text").value;
 
-                    DrawText(text, align, fontSize, style);
+                    prevYPos = DrawText(text, align, fontSize, style, prevYPos);
+                    break;
+                case "image":
+                    var align = valueArea.querySelector("#align").value;
+                    var width = valueArea.querySelector("#width").value;
+                    var height = valueArea.querySelector("#height").value;
+                    const prev = prevYPos;
+                    var img = new Image;
+                    img.onload = function () {
+                        DrawImage(img, align, width, height, prev);
+                    }
+                    img.src = URL.createObjectURL(valueArea.querySelector("#image").files[0]);
+                    prevYPos += parseInt(height);
+
+                    break;
+                case "indent":
+                    var indent = valueArea.querySelector("#indent").value;
+                    prevYPos += parseInt(indent);
+                    break;
+                case "table":
+                    var columns = [];
+                    var columnsDiv = valueArea.querySelectorAll("#column");
+                    for (let i = 0; i < columnsDiv.length; i++) {
+                        const div = columnsDiv[i];
+                        columns.push({
+                            name: div.querySelector("#columnName").value,
+                            value: div.querySelector("#columnValue").value,
+                            width: div.querySelector("#columnWidth").value,
+                        });
+                    }
+                    prevYPos = DrawTable(columns, true, prevYPos)
+                    break;
+                case "line":
+                    var symbol = valueArea.querySelector("#symbol").value;
+                    prevYPos = DrawLine(symbol, prevYPos);
                     break;
             }
         });
     }
-    function DrawText(text, align, fontSize, style,prevYPos) {
-
-        ctx.fillStyle = "black";
-        ctx.textAlign = align;
-        ctx.font = `${fontSize}px Comic Sans MS  `;
+    function DrawImage(image, align, width, height, prevYPos) {
         var xPos = 0;
         switch (align) {
             case "center":
-                xPos = canvas.width / 2;
+                xPos = canvas.width / 2 - width / 2;
                 break;
             case "left":
                 xPos = 0;
                 break;
             case "right":
-                xPos = canvas.width;
+                xPos = canvas.width - width;
                 break;
         }
-        var h = getTextHeight("Comic Sans MS",text,fontSize,style);
-        ctx.fillText(text, xPos,  prevYPos);
-        return h;
+        ctx.drawImage(image, xPos, prevYPos, width, height);
+        return prevYPos + height;
+
     }
+    function DrawText(text, align, fontSize, style, prevYPos) {
+        ctx.fillStyle = "black";
 
+        var newPos = CanvasTextWrapper(canvas, text, { x: 0, y: prevYPos }, { font: `${style} ${fontSize}px Times New Roman  `, textAlign: align });
 
+        return prevYPos + newPos.y;
+    }
+    function DrawTable(columns, showHeaders, prevYPos) {
+        var canvasWidth = canvas.width;
+        var tableWidth = 1;
+        columns.forEach(x => {
+            tableWidth += parseInt(x.width);
+        });
+        if (showHeaders) {
+            var fitWidth = 0;
+            var newYPos = prevYPos;
+            for (let i = 0; i < columns.length; i++) {
+                const column = columns[i];
+                var relColumnwidth = tableWidth / column.width;
+                var columnWidth = canvasWidth / relColumnwidth;
+                ctx.fillStyle = "black";
+                var newPos = CanvasTextWrapper(canvas, column.name, { x: fitWidth, y: prevYPos }, { maxWidth: columnWidth, font: `10px Times New Roman  `, textAlign: "left" });
+                fitWidth += columnWidth;
+                if (newPos.y >= newYPos) {
+                    newYPos = newPos.y;
+                }
+            }
+            prevYPos = newYPos;
+        }
+
+        return prevYPos;
+    }
+    function DrawLine(symbol, prevYPos) {
+        var symbolWidth = getTextSize("Times New Roman", symbol, 10, "normal");
+        prevYPos += symbolWidth[1];
+        var step = symbolWidth[0] * 2;
+        for (var i = 0; i < canvas.width; i += step) {
+            ctx.fillText(symbol, i, prevYPos);
+        }
+        return prevYPos;
+    }
     var stringToHTML = function (str) {
         var dom = document.createElement('div');
         dom.innerHTML = str;
         return dom;
     };
-    function getTextHeight(font,text,size,fontWeight) {
+    function getTextSize(font, text, size, fontWeight) {
 
         var div = document.createElement("div");
         div.innerHTML = text;
@@ -173,7 +367,7 @@
         document.body.removeChild(div);
 
         console.log(size);
-        return size[1];
+        return size;
     };
 </script>
 

@@ -2,16 +2,33 @@
   "name": "Getting Started Example",
   "version": "1.0",
   "description": "Build an Extension!",
-  "permissions": ["storage","nativeMessaging","declarativeContent","activeTab"],
+  "permissions": [
+    "storage",
+    "nativeMessaging",
+    "declarativeContent",
+    "activeTab",
+    "storage"
+  ],
   "background": {
-    "scripts": ["printerCommands.js","ReceiptBuilder.js","background.js"],
+    "scripts": [
+      "printerCommands.js",
+      "ReceiptBuilder.js",
+      "background.js"
+    ],
     "persistent": false
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
   "browser_action": {
     "default_popup": "popup.html"
   },
-  "manifest_version": 2,
-  "externally_connectable": {
-    "matches": ["<all_urls>"]
-  }
+  "manifest_version": 2
 }

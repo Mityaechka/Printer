@@ -10,3 +10,15 @@ C:\Users\User\source\repos\PrinterUtility\PrinterUtility\bin\Debug\Newtonsoft.Js
 C:\Users\User\source\repos\PrinterUtility\PrinterUtility\bin\Debug\Newtonsoft.Json.xml
 C:\Users\User\source\repos\PrinterUtility\PrinterUtility\bin\Debug\System.Drawing.Common.dll
 C:\Users\User\source\repos\PrinterUtility\PrinterUtility\bin\Debug\System.Text.Encoding.CodePages.dll
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\PrinterUtility.exe.config
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\PrinterUtility.exe
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\PrinterUtility.pdb
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\Newtonsoft.Json.dll
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\System.Drawing.Common.dll
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\System.Text.Encoding.CodePages.dll
+C:\Users\User\source\repos\Printer\PrinterUtility\bin\Debug\Newtonsoft.Json.xml
+C:\Users\User\source\repos\Printer\PrinterUtility\obj\Debug\PrinterUtility.csprojAssemblyReference.cache
+C:\Users\User\source\repos\Printer\PrinterUtility\obj\Debug\PrinterUtility.csproj.CoreCompileInputs.cache
+C:\Users\User\source\repos\Printer\PrinterUtility\obj\Debug\PrinterUtility.csproj.CopyComplete
+C:\Users\User\source\repos\Printer\PrinterUtility\obj\Debug\PrinterUtility.exe
+C:\Users\User\source\repos\Printer\PrinterUtility\obj\Debug\PrinterUtility.pdb

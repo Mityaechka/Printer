@@ -30,7 +30,7 @@ namespace PrinterUtility
 
                 var threshold = 127;
                 var index = 0;
-                double multiplier = 500;
+                double multiplier = 547;
                 double scale = (double)(multiplier / (double)bitmap.Width);
                 int xheight = (int)(bitmap.Height * scale);
                 int xwidth = (int)(bitmap.Width * scale);

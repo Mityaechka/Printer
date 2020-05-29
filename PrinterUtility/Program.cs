@@ -23,6 +23,7 @@ namespace PrinterUtility
         static string computerName = Environment.MachineName.ToString();
         public static void Main(string[] args)
         {
+            PrintString("!!!");
             JObject data;
             while ((data = Read()) != null)
             {
@@ -64,6 +65,8 @@ namespace PrinterUtility
                     }
                     else if (command["print_canvas"] != null)
                     {
+                        Write("Все ок");
+                        PrintString("OK");
                         var canvasString = command["print_canvas"].Value<string>();
                         PrintCanvas(canvasString);
                     }
@@ -153,7 +156,7 @@ namespace PrinterUtility
             bw.Write((char)0x1B);
             bw.Write('3');
             bw.Write((byte)30);
-
+            bw.Write(Encoding.UTF8.GetBytes("\n"));
             bw.Flush();
             byte[] bytes = stream.ToArray();
             return bytes;
