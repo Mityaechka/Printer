@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="index.js"></script>
+</head>
+
+<body>
+
+    <canvas style="border: 5px,solid;" width="250" id="canvas">
+
+    </canvas>
+
+    <div>
+        <h1>Настройка чека</h1>
+        <div id="labels">
+
+        </div>
+        <button id="addLabel" onclick="addLabel()">Добавить</button>
+    </div>
+    </div>
+</body>
+
+
+<script>
+    let labelsDiv = document.getElementById("labels");
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    //ctx.fillText("sdsd")
+    DrawText("right", 15, "bold");
+    const labelPattern = `
+        <p id="index">{number}</p>
+                <div id="area">
+                    <p>Поле</p>
+                    <select id="type">
+                        <option value="text">Текст</option>
+                        <option value="image">Изображение</option>
+                        <option value="value">Значение</option>
+                        <option value="total">Итог</option>
+                    </select>
+                </div>
+                <div id="value">
+                    
+                </div>
+            </div>
+            <button data-index="{index}" id="removeLabel" onclick="removeLabel()">Удалить</button>
+    `;
+    const textAreaPattern = `
+        <div>
+            <p>Выравнивание</p>
+            <select id="align" onchange="RedrawReciept()">
+                <option value="left">Лево</option>
+                <option value="center">Центр</option>
+                <option value="right">Право</option>
+            </select>
+        </div>
+        <div>
+            <p>Стиль</p>
+            <select id="style" onchange="RedrawReciept()">
+                <option value="normal">Обычный</option>
+                <option value="italic">Курсив</option>
+                <option value="bold">Жирный</option>
+            </select>
+        </div>
+        <div>
+            <p>Подчеркивание</p>
+            <input id="underline" type="checkbox" onchange="RedrawReciept()">
+        </div>
+        <div>
+            <p>Размер шрифта</p>
+            <input id="fontSize" type="number" min="10" max="50" value="10" onchange="RedrawReciept()">
+        </div>
+        <p>Текст</p>
+        <input id="text" type="text" onchange="RedrawReciept()">
+    `;
+    function addLabel() {
+        var index = labelsDiv.querySelectorAll("[id^=label]").length;
+        var pattern = labelPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
+        var element = stringToHTML(pattern);
+        element.setAttribute("id", `label${index}`);
+        labelsDiv.appendChild(element);
+
+        addAreaPattern(element, textAreaPattern);
+    }
+    function addAreaPattern(element, areaPattern) {
+        var btn = element.querySelector("#removeLabel");
+        if (btn) {
+            var index = btn.dataset.index;
+            if (index) {
+                var pattern = areaPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
+                element.querySelector("#value").innerHTML = pattern;
+            }
+        }
+
+    }
+    function removeLabel() {
+        var button = event.target;
+        var index = button.dataset.index;
+        if (index) {
+            var label = document.getElementById(`label${index}`);
+            if (label)
+                label.remove();
+        }
+    }
+
+
+    function RedrawReciept() {
+         ctx.fillStyle = "white";
+         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //ctx.clearRect(0,0,c.width,c.height);
+
+        var labels = labelsDiv.querySelectorAll("[id^=label]");
+        labels.forEach(label => {
+            var type = label.querySelector("#type");
+            var valueArea = label.querySelector("#value");
+            if (!type)
+                return;
+            switch (type.value) {
+                case "text":
+                    var align = valueArea.querySelector("#align").value;
+                    var underline = valueArea.querySelector("#underline").value;
+                    var fontSize = valueArea.querySelector("#fontSize").value;
+                    var text = valueArea.querySelector("#text").value;
+
+                    DrawText(text, align, fontSize, style);
+                    break;
+            }
+        });
+    }
+    function DrawText(text, align, fontSize, style,prevYPos) {
+
+        ctx.fillStyle = "black";
+        ctx.textAlign = align;
+        ctx.font = `${fontSize}px Comic Sans MS  `;
+        var xPos = 0;
+        switch (align) {
+            case "center":
+                xPos = canvas.width / 2;
+                break;
+            case "left":
+                xPos = 0;
+                break;
+            case "right":
+                xPos = canvas.width;
+                break;
+        }
+        var h = getTextHeight("Comic Sans MS",text,fontSize,style);
+        ctx.fillText(text, xPos,  prevYPos);
+        return h;
+    }
+
+
+    var stringToHTML = function (str) {
+        var dom = document.createElement('div');
+        dom.innerHTML = str;
+        return dom;
+    };
+    function getTextHeight(font,text,size,fontWeight) {
+
+        var div = document.createElement("div");
+        div.innerHTML = text;
+        div.style.position = 'absolute';
+        div.style.top = '-9999px';
+        div.style.left = '-9999px';
+        div.style.fontFamily = font;
+        div.style.fontWeight = fontWeight;
+        div.style.fontSize = size + 'px'; // or 'px'
+        document.body.appendChild(div);
+        var size = [div.offsetWidth, div.offsetHeight];
+        document.body.removeChild(div);
+
+        console.log(size);
+        return size[1];
+    };
+</script>
+
+</html>

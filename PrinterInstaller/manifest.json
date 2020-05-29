@@ -1,0 +1,9 @@
+{
+    "name": "com.printer_utility.print",
+    "description": "My Application",
+    "path": "C:\\Users\\User\\source\\repos\\PrinterUtility\\PrinterUtility\\bin\\Debug\\PrinterUtility.exe",
+    "type": "stdio",
+    "allowed_origins": [
+      "chrome-extension://jkciakobdgdghfagajjpfnlpocieijfa/"
+    ]
+  }

@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>animalistic.io</Company>
+    <Product>ESCPOS_NET</Product>
+    <Authors>Luke Paireepinart</Authors>
+    <Description>.NET Standard 2.0 Implementation of ESC/POS command generation and integration with thermal printers.
+Allows creating receipts with all common functionality supported.</Description>
+    <Copyright>Copyright 2020 CandL Development, LLC.</Copyright>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/lukevp/ESC-POS-.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>epson thermal receipt printing printer usb wifi bluetooth serial esc pos escpos escp esc/pos esc/pos.net esc_pos esc_pos_net esc_pos_usb esc_pos_usb_net</PackageTags>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/lukevp/ESC-POS-.NET</PackageProjectUrl>
+    <PackageReleaseNotes>Update to latest imagesharp to fix compatibility with .net 4.7.2 projects</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0001" />
+    <PackageReference Include="System.IO.Ports" Version="4.6.0" />
+  </ItemGroup>
+
+</Project>
