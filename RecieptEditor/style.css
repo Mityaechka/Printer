@@ -1,0 +1,47 @@
+#dragable {
+  position: absolute;
+  z-index: 9;
+  background-color: #f1f1f1;
+  border: 1px solid #d3d3d3;
+  text-align: center;
+}
+
+#canvasHeader {
+  padding: 10px;
+  cursor: move;
+  z-index: 10;
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.label-conatainer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  background-color: cornsilk;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+.label-conatainer > div {
+  padding: 5px;
+}
+.reciept-editor {
+  width: 75%;
+  vertical-align: center;
+  margin: auto;
+}
+h1 {
+  text-align: center;
+}
+
+.input-area > input,
+select label,
+.input {
+  display: block;
+}
+.inline-container > * {
+  display: inline-block;
+}
+.area {
+  display: inline-block;
+  vertical-align: top;
+}

@@ -5,40 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="index.js"></script>
     <script type="text/javascript" src="canvas-text-wrapper.js"></script>
 </head>
 
 <body>
-    <button onclick="sendMessage()"></button>
-    <canvas style="border: 5px,solid;" width="250" height="100" id="canvas">
 
-    </canvas>
-
-    <div>
+    <div class="reciept-editor">
         <h1>Настройка чека</h1>
         <div id="labels">
-            <!-- <div id="header">
-                <div id="column0">
-                    <div>
-                        <p>Название</p>
-                        <input id="columnName" type="text">
-                    </div>
-                    <div>
-                        <p>Значения</p>
-                        <input id="columnValue" type="text">
-                    </div>
-                    <div>
-                        <p>Заполнение</p>
-                        <input id="columnWidth" min="0" value="1" type="number">
-                    </div>
-                    <button data-column-index="0" id="removeColumnBtn" onclick="remoeccolumn()">Удалить колонку</button>
-                </div>
-                <button id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
-            </div> -->
         </div>
         <button id="addLabel" onclick="addLabel()">Добавить</button>
     </div>
+    <div id="dragable">
+        <div id="canvasHeader">Click here to move</div>
+        <canvas width="200" id="canvas">
+        </canvas>
     </div>
 </body>
 
@@ -54,127 +37,176 @@
     let ctx = canvas.getContext("2d");
 
     const labelPattern = `
-        <p id="index">{number}</p>
-                <div id="area">
-                    <p>Поле</p>
-                    <select id="type" onchange="changeAreaType()" onchange="RedrawReciept()">
-                        <option value="text">Текст</option>
-                        <option value="image">Изображение</option>
-                        <option value="indent">Отступ</option>
-                        <option value="table">Таблица значений</option>
-                        <option value="line">Линия</option>
-                    </select>
-                </div>
-                <div id="value">
-                    
-                </div>
+        <div class="inline-container">
+            <div>
+                <p id="index">{number}</p>
             </div>
+            <div class="input-area">
+                <label >Поле</label>
+                <select id="type" onchange="changeAreaType()" onchange="RedrawReciept()">
+                    <option value="text">Текст</option>
+                    <option value="image">Изображение</option>
+                    <option value="indent">Отступ</option>
+                    <option value="table">Таблица значений</option>
+                    <option value="line">Линия</option>
+                </select>
+            </div>
+        </div>
+        <div id="value">
+            
+        </div>
+        <div>
             <button data-index="{index}" id="removeLabel" onclick="removeLabel()">Удалить</button>
+        </div>
     `;
     const textAreaPattern = `
-        <div>
-            <p>Выравнивание</p>
-            <select id="align" onchange="RedrawReciept()">
-                <option value="left">Лево</option>
-                <option value="center">Центр</option>
-                <option value="right">Право</option>
-            </select>
-        </div>
-        <div>
-            <p>Стиль</p>
-            <select id="style" onchange="RedrawReciept()">
-                <option value="normal">Обычный</option>
-                <option value="italic">Курсив</option>
-                <option value="bold">Жирный</option>
-            </select>
-        </div>
-        <div>
-            <p>Подчеркивание</p>
-            <input id="underline" type="checkbox" onchange="RedrawReciept()">
-        </div>
-        <div>
-            <p>Размер шрифта</p>
-            <input id="fontSize" type="number" min="10" max="50" value="10" onchange="RedrawReciept()">
-        </div>
-        <p>Текст</p>
-        <input id="text" type="text" onchange="RedrawReciept()">
+            <div class="input-area area">
+                <label>Текст</label>
+                <input id="text" type="text" onchange="RedrawReciept()">
+            </div>
+            <div class="input-area area">
+                <label>Выравнивание</label>
+                <div class="input">
+                    <select id="align" onchange="RedrawReciept()">
+                        <option value="left">Лево</option>
+                        <option value="center">Центр</option>
+                        <option value="right">Право</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-area area">
+                <label>Стиль</label>
+                <div class="input">
+                    <select id="style" onchange="RedrawReciept()">
+                        <option value="normal">Обычный</option>
+                        <option value="italic">Курсив</option>
+                        <option value="bold">Жирный</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-area area">
+                <label>Подчеркивание</label>
+                <input id="underline" type="checkbox" onchange="RedrawReciept()">
+            </div>
+            <div class="input-area area">
+                <label>Размер шрифта</label>
+                <input id="fontSize" type="number" min="10" max="50" value="10" onchange="RedrawReciept()">
+            </div>
     `;
     const imageAreaPattern = `
-    <div>
-        <p>Выравнивание</p>
-        <select id="align" onchange="RedrawReciept()">
-            <option value="left">Лево</option>
-            <option value="center">Центр</option>
-            <option value="right">Право</option>
-        </select>
-    </div>
-    <div>
-        <p>Изображение</p>
-        <input id="image" type="file"accept="image/*" onchange="RedrawReciept()">
-    </div>
-    <div>
-        <p>Ширина</p>
-        <input id="width" type="number" min="1" value="100" onchange="RedrawReciept()">
-    </div>
-    <div>
-        <p>Высота</p>
-        <input id="height" type="number" min="1" value="100" onchange="RedrawReciept()">
-    </div>
+        <div class="input-area area">
+            <label>Изображение</label>
+            <input id="image" type="file"accept="image/*" onchange="RedrawReciept()">
+        </div>
+        <div class="input-area area">
+            <label>Выравнивание</label>
+            <div class="input">
+                <select id="align" onchange="RedrawReciept()">
+                    <option value="left">Лево</option>
+                    <option value="center">Центр</option>
+                    <option value="right">Право</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-area area">
+            <label>Высота</label>
+            <input id="height" type="number" min="1" value="100" onchange="RedrawReciept()">
+        </div>
+        <div class="input-area area">
+            <label>Ширина</label>
+            <input id="width" type="number" min="1" value="100" onchange="RedrawReciept()">
+        </div>
     `;
     const indentAreaPattern = `
-    <div>
-        <p>Отступ</p>
+    <div class="input-area">
+        <label>Отступ</label>
         <input id="indent" type="number" min="1" value="1" onchange="RedrawReciept()">
     </div>
     `;
     const tableArePattern = `
+    <div class="inline-container">
+        <div>
+            <h4>Настройка шапки</h4>
+            <div class="inline-container">
+                <div class="input-area area">
+                    <label>Отображать шапку</label>
+                    <input id="showHeader" type="checkbox" onchange="RedrawReciept()">
+                </div>
+            </div>
+        </div>
+        <div>
+            <h4>Настройка таблицы</h4>
+            <div class="inline-container">
+                <div class="input-area">
+                    <label>Показывать гранцу</label>
+                    <input id="showBorder" type="checkbox" onchange="RedrawReciept()">
+                </div>
+                <div class="input-area area">
+                        <label>Размер шрифта</label>
+                        <input id="headerFontSize" type="number" min="10" max="50" value="10" onchange="RedrawReciept()">
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="header">
-        <button  id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
+        <h4>Строение таблицы</h4>
+        <button  id="addRowBtn" onclick="addRow()">Добавить строку</button>
     </div>
     `;
     const lineAreaPattern = `
-    <div>
-        <p>Символ</p>
+    <div class="input-area">
+        <label>Символ</label>
         <input id="symbol" value="-" onchange="RedrawReciept()">
     <div>
     `;
     const columnPattern = `
-        <div>
-            <p>Название</p>
+        <div class="input-area area">
+            <label>Название</label>
             <input id="columnName" type="text">
         </div>
-        <div>
-            <p>Значения</p>
+        <div class="input-area area">
+            <label>Значения</label>
             <input id="columnValue" type="text">
         </div>
-        <div>
-            <p>Заполнение</p>
+        <div class="input-area area">
+            <label>Заполнение</label>
             <input id="columnWidth" min="0" value="1" type="number">
         </div>
-        <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить колонку</button>
+        <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить колонку</button>        
     `;
-
+    const rowPattern = `
+        <button  id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
+        <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить строку</button>       
+    `;
     function removeColumn() {
         var column = event.target.parentElement;
         var header = column.parentElement;
         var index = Array.prototype.indexOf.call(header.querySelectorAll("#column"), column);
         column.remove();
     }
+
     function addColumn() {
         var header = event.target.parentElement;
 
         var element = stringToHTML(columnPattern);
-        element.setAttribute("id", "column")
+        element.setAttribute("id", "column");
+        element.setAttribute("class", "inline-container");
+        header.appendChild(element);
+    }
+    function addRow() {
+        var header = event.target.parentElement;
+
+        var element = stringToHTML(rowPattern);
+        element.setAttribute("id", "row");
         header.appendChild(element);
     }
 
 
-
     function changeAreaType() {
-        var target = event.target.parentElement.parentElement;
+        var target = event.target.parentElement.parentElement.parentElement;
 
         var btn = target.querySelector("#removeLabel");
-        var index = btn.dataset.index;
+        //var index = btn.dataset.index;
 
         var type = target.querySelector("#type");
 
@@ -202,11 +234,13 @@
         var index = labelsDiv.querySelectorAll("[id^=label]").length;
         var pattern = labelPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
         var element = stringToHTML(pattern);
+
         element.querySelector("#type").value = "text";
         element.setAttribute("id", `label${index}`);
+        element.setAttribute("class", "label-conatainer")
         labelsDiv.appendChild(element);
 
-        addAreaPattern(element, textAreaPattern);
+        addAreaPattern(element, tableArePattern);
     }
     function addAreaPattern(element, areaPattern) {
         var btn = element.querySelector("#removeLabel");
@@ -270,17 +304,26 @@
                     prevYPos += parseInt(indent);
                     break;
                 case "table":
-                    var columns = [];
-                    var columnsDiv = valueArea.querySelectorAll("#column");
-                    for (let i = 0; i < columnsDiv.length; i++) {
-                        const div = columnsDiv[i];
-                        columns.push({
-                            name: div.querySelector("#columnName").value,
-                            value: div.querySelector("#columnValue").value,
-                            width: div.querySelector("#columnWidth").value,
-                        });
+                    var rows = [];
+
+                    var rowsDiv = valueArea.querySelectorAll("#row");
+                    var headerFontSize = valueArea.querySelector("#headerFontSize").value;
+
+                    for (let i = 0; i < rowsDiv.length; i++) {
+                        const rowDiv = rowsDiv[i];
+                        var columns = rowDiv.querySelectorAll("#column");
+                        var row = []
+                        for (let j = 0; j < columns.length; j++) {
+                            const columnDiv = columns[j];
+                            row.push({
+                                name: columnDiv.querySelector("#columnName").value,
+                                value: columnDiv.querySelector("#columnValue").value,
+                                width: columnDiv.querySelector("#columnWidth").value,
+                            });
+                        }
+                        rows.push(row);
                     }
-                    prevYPos = DrawTable(columns, true, prevYPos)
+                    prevYPos = DrawTable(columns, headerFontSize, true, true, prevYPos)
                     break;
                 case "line":
                     var symbol = valueArea.querySelector("#symbol").value;
@@ -313,24 +356,41 @@
 
         return prevYPos + newPos.y;
     }
-    function DrawTable(columns, showHeaders, prevYPos) {
+    function DrawTable(columns, headerFontSize, showHeaders, drawBorders, prevYPos) {
         var canvasWidth = canvas.width;
-        var tableWidth = 1;
+        var tableWidth = 0;
         columns.forEach(x => {
             tableWidth += parseInt(x.width);
         });
         if (showHeaders) {
+            var borderPositions = [];
             var fitWidth = 0;
             var newYPos = prevYPos;
+            var columnWidth = canvasWidth / tableWidth;
             for (let i = 0; i < columns.length; i++) {
                 const column = columns[i];
-                var relColumnwidth = tableWidth / column.width;
-                var columnWidth = canvasWidth / relColumnwidth;
+                var width = columnWidth * column.width;
                 ctx.fillStyle = "black";
-                var newPos = CanvasTextWrapper(canvas, column.name, { x: fitWidth, y: prevYPos }, { maxWidth: columnWidth, font: `10px Times New Roman  `, textAlign: "left" });
-                fitWidth += columnWidth;
+                var newPos = CanvasTextWrapper(canvas, column.name, { x: fitWidth, y: prevYPos }, { maxWidth: width, font: `${headerFontSize}px Times New Roman  ` });
+
+                fitWidth += width;
+                borderPositions.push(newPos.x);
                 if (newPos.y >= newYPos) {
                     newYPos = newPos.y;
+                }
+            }
+
+            if (drawBorders) {
+                ctx.beginPath();
+                ctx.moveTo(0, newYPos);
+                ctx.lineTo(canvasWidth, newYPos);
+                ctx.stroke();
+                for (let i = 1; i < borderPositions.length; i++) {
+                    const border = borderPositions[i];
+                    ctx.beginPath();
+                    ctx.moveTo(border, prevYPos);
+                    ctx.lineTo(border, newYPos);
+                    ctx.stroke();
                 }
             }
             prevYPos = newYPos;
@@ -342,6 +402,8 @@
         var symbolWidth = getTextSize("Times New Roman", symbol, 10, "normal");
         prevYPos += symbolWidth[1];
         var step = symbolWidth[0] * 2;
+        ctx.font = `10px Times New Roman  `;
+        ctx.textAlign = "center";
         for (var i = 0; i < canvas.width; i += step) {
             ctx.fillText(symbol, i, prevYPos);
         }
@@ -369,6 +431,54 @@
         console.log(size);
         return size;
     };
+    addLabel();
+</script>
+<script>
+    dragElement(document.getElementById("dragable"));
+
+    function dragElement(elmnt) {
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+            // if present, the header is where you move the DIV from:
+            document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+            // otherwise, move the DIV from anywhere inside the DIV:
+            elmnt.onmousedown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            // call a function whenever the cursor moves:
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // calculate the new cursor position:
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // set the element's new position:
+            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            // stop moving when mouse button is released:
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+</script>
+<script>
+
 </script>
 
 </html>
