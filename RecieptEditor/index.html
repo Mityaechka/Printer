@@ -7,6 +7,7 @@
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript" src="values.js"></script>
     <script type="text/javascript" src="canvas-text-wrapper.js"></script>
 </head>
 
@@ -27,20 +28,8 @@
 
 
 <script>
-    function sendMessage() {
-        var event = document.createEvent('Event');
-        event.initEvent('hello');
-        document.dispatchEvent(event);
-    }
-    let labelsDiv = document.getElementById("labels");
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-
     const labelPattern = `
         <div class="inline-container">
-            <div>
-                <p id="index">{number}</p>
-            </div>
             <div class="input-area">
                 <label >Поле</label>
                 <select id="type" onchange="changeAreaType()" onchange="RedrawReciept()">
@@ -53,262 +42,118 @@
             </div>
         </div>
         <div id="value">
-            
+
         </div>
         <div>
-            <button data-index="{index}" id="removeLabel" onclick="removeLabel()">Удалить</button>
+            <button id="removeLabel" onclick="removeLabel()">Удалить</button>
         </div>
     `;
-    const textAreaPattern = `
-            <div class="input-area area">
-                <label>Текст</label>
-                <input id="text" type="text" onchange="RedrawReciept()">
-            </div>
-            <div class="input-area area">
-                <label>Выравнивание</label>
-                <div class="input">
-                    <select id="align" onchange="RedrawReciept()">
-                        <option value="left">Лево</option>
-                        <option value="center">Центр</option>
-                        <option value="right">Право</option>
-                    </select>
-                </div>
-            </div>
-            <div class="input-area area">
-                <label>Стиль</label>
-                <div class="input">
-                    <select id="style" onchange="RedrawReciept()">
-                        <option value="normal">Обычный</option>
-                        <option value="italic">Курсив</option>
-                        <option value="bold">Жирный</option>
-                    </select>
-                </div>
-            </div>
-            <div class="input-area area">
-                <label>Подчеркивание</label>
-                <input id="underline" type="checkbox" onchange="RedrawReciept()">
-            </div>
-            <div class="input-area area">
-                <label>Размер шрифта</label>
-                <input id="fontSize" type="number" min="10" max="50" value="10" onchange="RedrawReciept()">
-            </div>
-    `;
-    const imageAreaPattern = `
-        <div class="input-area area">
-            <label>Изображение</label>
-            <input id="image" type="file"accept="image/*" onchange="RedrawReciept()">
-        </div>
-        <div class="input-area area">
-            <label>Выравнивание</label>
-            <div class="input">
-                <select id="align" onchange="RedrawReciept()">
-                    <option value="left">Лево</option>
-                    <option value="center">Центр</option>
-                    <option value="right">Право</option>
-                </select>
-            </div>
-        </div>
-        <div class="input-area area">
-            <label>Высота</label>
-            <input id="height" type="number" min="1" value="100" onchange="RedrawReciept()">
-        </div>
-        <div class="input-area area">
-            <label>Ширина</label>
-            <input id="width" type="number" min="1" value="100" onchange="RedrawReciept()">
-        </div>
-    `;
-    const indentAreaPattern = `
-    <div class="input-area">
-        <label>Отступ</label>
-        <input id="indent" type="number" min="1" value="1" onchange="RedrawReciept()">
-    </div>
-    `;
-    const tableArePattern = `
-    <div class="inline-container">
-        <div>
-            <h4>Настройка шапки</h4>
-            <div class="inline-container">
-                <div class="input-area area">
-                    <label>Отображать шапку</label>
-                    <input id="showHeader" type="checkbox" onchange="RedrawReciept()">
-                </div>
-            </div>
-        </div>
-        <div>
-            <h4>Настройка таблицы</h4>
-            <div class="inline-container">
-                <div class="input-area">
-                    <label>Показывать гранцу</label>
-                    <input id="showBorder" type="checkbox" onchange="RedrawReciept()">
-                </div>
-                <div class="input-area area">
-                        <label>Размер шрифта</label>
-                        <input id="headerFontSize" type="number" min="10" max="50" value="10" onchange="RedrawReciept()">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="header">
-        <h4>Строение таблицы</h4>
-        <button  id="addRowBtn" onclick="addRow()">Добавить строку</button>
-    </div>
-    `;
-    const lineAreaPattern = `
-    <div class="input-area">
-        <label>Символ</label>
-        <input id="symbol" value="-" onchange="RedrawReciept()">
-    <div>
-    `;
-    const columnPattern = `
-        <div class="input-area area">
-            <label>Название</label>
-            <input id="columnName" type="text">
-        </div>
-        <div class="input-area area">
-            <label>Значения</label>
-            <input id="columnValue" type="text">
-        </div>
-        <div class="input-area area">
-            <label>Заполнение</label>
-            <input id="columnWidth" min="0" value="1" type="number">
-        </div>
-        <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить колонку</button>        
-    `;
-    const rowPattern = `
-        <button  id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
-        <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить строку</button>       
-    `;
-    function removeColumn() {
-        var column = event.target.parentElement;
-        var header = column.parentElement;
-        var index = Array.prototype.indexOf.call(header.querySelectorAll("#column"), column);
-        column.remove();
-    }
 
-    function addColumn() {
-        var header = event.target.parentElement;
+    let labelsDiv = document.getElementById("labels");
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
 
-        var element = stringToHTML(columnPattern);
-        element.setAttribute("id", "column");
-        element.setAttribute("class", "inline-container");
-        header.appendChild(element);
-    }
-    function addRow() {
-        var header = event.target.parentElement;
+    function changeAreaType(label) {
+        if (!label)
+            label = event.target.closest("#label");
 
-        var element = stringToHTML(rowPattern);
-        element.setAttribute("id", "row");
-        header.appendChild(element);
-    }
-
-
-    function changeAreaType() {
-        var target = event.target.parentElement.parentElement.parentElement;
-
-        var btn = target.querySelector("#removeLabel");
-        //var index = btn.dataset.index;
-
-        var type = target.querySelector("#type");
-
+        var type = label.querySelector("#type");
+        var field;
         switch (type.value) {
             case "text":
-                addAreaPattern(target, textAreaPattern);
+                field = new TextField();
                 break;
             case "image":
-                addAreaPattern(target, imageAreaPattern);
+                field = new ImageField();
                 break;
             case "indent":
-                addAreaPattern(target, indentAreaPattern);
-                break;
-            case "table":
-                addAreaPattern(target, tableArePattern);
+                field = new IndentField();
                 break;
             case "line":
-                addAreaPattern(target, lineAreaPattern);
+                field = new LineField();
+                break;
+            case "table":
+                field = new TableField();
                 break;
             default:
+                field = new Field();
                 break;
         }
+        field.AddPattern(label.querySelector("#value"));
+        field.FillPattern();
+        RedrawReciept();
     }
     function addLabel() {
-        var index = labelsDiv.querySelectorAll("[id^=label]").length;
-        var pattern = labelPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
+        var pattern = labelPattern;
         var element = stringToHTML(pattern);
 
-        element.querySelector("#type").value = "text";
-        element.setAttribute("id", `label${index}`);
+        element.querySelector("#type").value = "table";
+        element.setAttribute("id", "label")
+
         element.setAttribute("class", "label-conatainer")
         labelsDiv.appendChild(element);
-
-        addAreaPattern(element, tableArePattern);
+        changeAreaType(element);
+        RedrawReciept();
     }
-    function addAreaPattern(element, areaPattern) {
-        var btn = element.querySelector("#removeLabel");
-        if (btn) {
-            var index = btn.dataset.index;
-            if (index) {
-                var pattern = areaPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
-                element.querySelector("#value").innerHTML = pattern;
-            }
-        }
-
-    }
-    function removeLabel() {
-        var button = event.target;
-        var index = button.dataset.index;
-        if (index) {
-            var label = document.getElementById(`label${index}`);
-            if (label)
-                label.remove();
-        }
-    }
-
-
-    function RedrawReciept() {
+    async function RedrawReciept() {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "black";
 
         var labels = labelsDiv.querySelectorAll("[id^=label]");
         var prevYPos = 0;
-        labels.forEach(label => {
+        for (let i = 0; i < labels.length; i++) {
+            const label = labels[i];
             var type = label.querySelector("#type");
             var valueArea = label.querySelector("#value");
             if (!type)
                 return;
+            var field = new Field();
             switch (type.value) {
                 case "text":
-                    var align = valueArea.querySelector("#align").value;
-                    var underline = valueArea.querySelector("#underline").value;
-                    var fontSize = valueArea.querySelector("#fontSize").value;
-                    var style = valueArea.querySelector("#style").value;
-                    var text = valueArea.querySelector("#text").value;
-
-                    prevYPos = DrawText(text, align, fontSize, style, prevYPos);
+                    field = new TextField({
+                        align: valueArea.querySelector("#align").value,
+                        fontSize: valueArea.querySelector("#fontSize").value,
+                        style: valueArea.querySelector("#style").value,
+                        text: valueArea.querySelector("#text").value,
+                    });
                     break;
                 case "image":
-                    var align = valueArea.querySelector("#align").value;
-                    var width = valueArea.querySelector("#width").value;
-                    var height = valueArea.querySelector("#height").value;
-                    const prev = prevYPos;
                     var img = new Image;
-                    img.onload = function () {
-                        DrawImage(img, align, width, height, prev);
-                    }
                     img.src = URL.createObjectURL(valueArea.querySelector("#image").files[0]);
-                    prevYPos += parseInt(height);
-
+                    await loadImage(img);
+                    field = new ImageField({
+                        align: valueArea.querySelector("#align").value,
+                        width: valueArea.querySelector("#width").value,
+                        height: valueArea.querySelector("#height").value,
+                        image: img
+                    });
                     break;
                 case "indent":
-                    var indent = valueArea.querySelector("#indent").value;
-                    prevYPos += parseInt(indent);
+                    field = new IndentField({
+                        indent: valueArea.querySelector("#indent").value
+                    });
+                    break;
+                case "line":
+                    field = new LineField({
+                        symbol: valueArea.querySelector("#symbol").value
+                    });
                     break;
                 case "table":
+                    var showBorder = valueArea.querySelector("#showBorder").checked;
+                    var fontSize = valueArea.querySelector("#fontSize").value;
+                    var headers = [];
                     var rows = [];
 
+                    var headersDiv = valueArea.querySelectorAll("#headerColumn");
+                    for (let i = 0; i < headersDiv.length; i++) {
+                        const headerDiv = headersDiv[i];
+                        headers.push({
+                            name: headerDiv.querySelector("#columnName").value,
+                            width: headerDiv.querySelector("#columnWidth").value
+                        });
+                    }
                     var rowsDiv = valueArea.querySelectorAll("#row");
-                    var headerFontSize = valueArea.querySelector("#headerFontSize").value;
-
                     for (let i = 0; i < rowsDiv.length; i++) {
                         const rowDiv = rowsDiv[i];
                         var columns = rowDiv.querySelectorAll("#column");
@@ -316,122 +161,278 @@
                         for (let j = 0; j < columns.length; j++) {
                             const columnDiv = columns[j];
                             row.push({
-                                name: columnDiv.querySelector("#columnName").value,
                                 value: columnDiv.querySelector("#columnValue").value,
                                 width: columnDiv.querySelector("#columnWidth").value,
                             });
                         }
                         rows.push(row);
                     }
-                    prevYPos = DrawTable(columns, headerFontSize, true, true, prevYPos)
+                    field = new TableField({
+                        fontSize: fontSize,
+                        showBorder: showBorder,
+                        headers: headers,
+                        rows: rows
+                    });
+                    //prevYPos = DrawTable(columns, headerFontSize, true, true, prevYPos)
                     break;
-                case "line":
-                    var symbol = valueArea.querySelector("#symbol").value;
-                    prevYPos = DrawLine(symbol, prevYPos);
-                    break;
+
             }
-        });
-    }
-    function DrawImage(image, align, width, height, prevYPos) {
-        var xPos = 0;
-        switch (align) {
-            case "center":
-                xPos = canvas.width / 2 - width / 2;
-                break;
-            case "left":
-                xPos = 0;
-                break;
-            case "right":
-                xPos = canvas.width - width;
-                break;
+            prevYPos = field.DrawFileld(canvas, prevYPos);
         }
-        ctx.drawImage(image, xPos, prevYPos, width, height);
-        return prevYPos + height;
-
-    }
-    function DrawText(text, align, fontSize, style, prevYPos) {
-        ctx.fillStyle = "black";
-
-        var newPos = CanvasTextWrapper(canvas, text, { x: 0, y: prevYPos }, { font: `${style} ${fontSize}px Times New Roman  `, textAlign: align });
-
-        return prevYPos + newPos.y;
-    }
-    function DrawTable(columns, headerFontSize, showHeaders, drawBorders, prevYPos) {
-        var canvasWidth = canvas.width;
-        var tableWidth = 0;
-        columns.forEach(x => {
-            tableWidth += parseInt(x.width);
-        });
-        if (showHeaders) {
-            var borderPositions = [];
-            var fitWidth = 0;
-            var newYPos = prevYPos;
-            var columnWidth = canvasWidth / tableWidth;
-            for (let i = 0; i < columns.length; i++) {
-                const column = columns[i];
-                var width = columnWidth * column.width;
-                ctx.fillStyle = "black";
-                var newPos = CanvasTextWrapper(canvas, column.name, { x: fitWidth, y: prevYPos }, { maxWidth: width, font: `${headerFontSize}px Times New Roman  ` });
-
-                fitWidth += width;
-                borderPositions.push(newPos.x);
-                if (newPos.y >= newYPos) {
-                    newYPos = newPos.y;
-                }
-            }
-
-            if (drawBorders) {
-                ctx.beginPath();
-                ctx.moveTo(0, newYPos);
-                ctx.lineTo(canvasWidth, newYPos);
-                ctx.stroke();
-                for (let i = 1; i < borderPositions.length; i++) {
-                    const border = borderPositions[i];
-                    ctx.beginPath();
-                    ctx.moveTo(border, prevYPos);
-                    ctx.lineTo(border, newYPos);
-                    ctx.stroke();
-                }
-            }
-            prevYPos = newYPos;
-        }
-
-        return prevYPos;
-    }
-    function DrawLine(symbol, prevYPos) {
-        var symbolWidth = getTextSize("Times New Roman", symbol, 10, "normal");
-        prevYPos += symbolWidth[1];
-        var step = symbolWidth[0] * 2;
-        ctx.font = `10px Times New Roman  `;
-        ctx.textAlign = "center";
-        for (var i = 0; i < canvas.width; i += step) {
-            ctx.fillText(symbol, i, prevYPos);
-        }
-        return prevYPos;
     }
     var stringToHTML = function (str) {
         var dom = document.createElement('div');
         dom.innerHTML = str;
         return dom;
     };
-    function getTextSize(font, text, size, fontWeight) {
-
-        var div = document.createElement("div");
-        div.innerHTML = text;
-        div.style.position = 'absolute';
-        div.style.top = '-9999px';
-        div.style.left = '-9999px';
-        div.style.fontFamily = font;
-        div.style.fontWeight = fontWeight;
-        div.style.fontSize = size + 'px'; // or 'px'
-        document.body.appendChild(div);
-        var size = [div.offsetWidth, div.offsetHeight];
-        document.body.removeChild(div);
-
-        console.log(size);
-        return size;
+    loadImage = async img => {
+        return new Promise((resolve, reject) => {
+            img.onload = async () => {
+                console.log("Image Loaded");
+                resolve(true);
+            };
+        });
     };
-    addLabel();
+    // const columnPattern = `
+    //     <div class="input-area area">
+    //         <label>Название</label>
+    //         <input id="columnName" type="text">
+    //     </div>
+    //     <div class="input-area area">
+    //         <label>Значения</label>
+    //         <input id="columnValue" type="text">
+    //     </div>
+    //     <div class="input-area area">
+    //         <label>Заполнение</label>
+    //         <input id="columnWidth" min="0" value="1" type="number">
+    //     </div>
+    //     <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить колонку</button>        
+    // `;
+    // const rowPattern = `
+    //     <button  id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
+    //     <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить строку</button>       
+    // `;
+    // function removeColumn() {
+    //     var column = event.target.parentElement;
+    //     var header = column.parentElement;
+    //     var index = Array.prototype.indexOf.call(header.querySelectorAll("#column"), column);
+    //     column.remove();
+    // }
+
+    // function addColumn() {
+    //     var header = event.target.parentElement;
+
+    //     var element = stringToHTML(columnPattern);
+    //     element.setAttribute("id", "column");
+    //     element.setAttribute("class", "inline-container");
+    //     header.appendChild(element);
+    // }
+    // function addRow() {
+    //     var header = event.target.parentElement;
+
+    //     var element = stringToHTML(rowPattern);
+    //     element.setAttribute("id", "row");
+    //     header.appendChild(element);
+    // }
+
+    // function addLabel() {
+    //     var index = labelsDiv.querySelectorAll("[id^=label]").length;
+    //     var pattern = labelPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
+    //     var element = stringToHTML(pattern);
+
+    //     element.querySelector("#type").value = "text";
+    //     element.setAttribute("id", `label${index}`);
+    //     element.setAttribute("class", "label-conatainer")
+    //     labelsDiv.appendChild(element);
+
+    //     addAreaPattern(element, tableArePattern);
+    // }
+    // function addAreaPattern(element, areaPattern) {
+    //     var btn = element.querySelector("#removeLabel");
+    //     if (btn) {
+    //         var index = btn.dataset.index;
+    //         if (index) {
+    //             var pattern = areaPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
+    //             element.querySelector("#value").innerHTML = pattern;
+    //         }
+    //     }
+
+    // }
+    // function removeLabel() {
+    //     var button = event.target;
+    //     var index = button.dataset.index;
+    //     if (index) {
+    //         var label = document.getElementById(`label${index}`);
+    //         if (label)
+    //             label.remove();
+    //     }
+    // }
+
+
+    // function RedrawReciept() {
+    //     ctx.fillStyle = "white";
+    //     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    //     ctx.fillStyle = "black";
+
+    //     var labels = labelsDiv.querySelectorAll("[id^=label]");
+    //     var prevYPos = 0;
+    //     labels.forEach(label => {
+    //         var type = label.querySelector("#type");
+    //         var valueArea = label.querySelector("#value");
+    //         if (!type)
+    //             return;
+    //         switch (type.value) {
+    //             case "text":
+    //                 var align = valueArea.querySelector("#align").value;
+    //                 var underline = valueArea.querySelector("#underline").value;
+    //                 var fontSize = valueArea.querySelector("#fontSize").value;
+    //                 var style = valueArea.querySelector("#style").value;
+    //                 var text = valueArea.querySelector("#text").value;
+
+    //                 prevYPos = DrawText(text, align, fontSize, style, prevYPos);
+    //                 break;
+    //             case "image":
+    //                 var align = valueArea.querySelector("#align").value;
+    //                 var width = valueArea.querySelector("#width").value;
+    //                 var height = valueArea.querySelector("#height").value;
+    //                 const prev = prevYPos;
+    //                 var img = new Image;
+    //                 img.onload = function () {
+    //                     DrawImage(img, align, width, height, prev);
+    //                 }
+    //                 img.src = URL.createObjectURL(valueArea.querySelector("#image").files[0]);
+    //                 prevYPos += parseInt(height);
+
+    //                 break;
+    //             case "indent":
+    //                 var indent = valueArea.querySelector("#indent").value;
+    //                 prevYPos += parseInt(indent);
+    //                 break;
+    //             case "table":
+    //                 var rows = [];
+
+    //                 var rowsDiv = valueArea.querySelectorAll("#row");
+    //                 var headerFontSize = valueArea.querySelector("#headerFontSize").value;
+
+    //                 for (let i = 0; i < rowsDiv.length; i++) {
+    //                     const rowDiv = rowsDiv[i];
+    //                     var columns = rowDiv.querySelectorAll("#column");
+    //                     var row = []
+    //                     for (let j = 0; j < columns.length; j++) {
+    //                         const columnDiv = columns[j];
+    //                         row.push({
+    //                             name: columnDiv.querySelector("#columnName").value,
+    //                             value: columnDiv.querySelector("#columnValue").value,
+    //                             width: columnDiv.querySelector("#columnWidth").value,
+    //                         });
+    //                     }
+    //                     rows.push(row);
+    //                 }
+    //                 prevYPos = DrawTable(columns, headerFontSize, true, true, prevYPos)
+    //                 break;
+    //             case "line":
+    //                 var symbol = valueArea.querySelector("#symbol").value;
+    //                 prevYPos = DrawLine(symbol, prevYPos);
+    //                 break;
+    //         }
+    //     });
+    // }
+    // function DrawImage(image, align, width, height, prevYPos) {
+    //     var xPos = 0;
+    //     switch (align) {
+    //         case "center":
+    //             xPos = canvas.width / 2 - width / 2;
+    //             break;
+    //         case "left":
+    //             xPos = 0;
+    //             break;
+    //         case "right":
+    //             xPos = canvas.width - width;
+    //             break;
+    //     }
+    //     ctx.drawImage(image, xPos, prevYPos, width, height);
+    //     return prevYPos + height;
+
+    // }
+    // function DrawText(text, align, fontSize, style, prevYPos) {
+    //     ctx.fillStyle = "black";
+
+    //     var newPos = CanvasTextWrapper(canvas, text, { x: 0, y: prevYPos }, { font: `${style} ${fontSize}px Times New Roman  `, textAlign: align });
+
+    //     return prevYPos + newPos.y;
+    // }
+    // function DrawTable(columns, headerFontSize, showHeaders, drawBorders, prevYPos) {
+    //     var canvasWidth = canvas.width;
+    //     var tableWidth = 0;
+    //     columns.forEach(x => {
+    //         tableWidth += parseInt(x.width);
+    //     });
+    //     if (showHeaders) {
+    //         var borderPositions = [];
+    //         var fitWidth = 0;
+    //         var newYPos = prevYPos;
+    //         var columnWidth = canvasWidth / tableWidth;
+    //         for (let i = 0; i < columns.length; i++) {
+    //             const column = columns[i];
+    //             var width = columnWidth * column.width;
+    //             ctx.fillStyle = "black";
+    //             var newPos = CanvasTextWrapper(canvas, column.name, { x: fitWidth, y: prevYPos }, { maxWidth: width, font: `${headerFontSize}px Times New Roman  ` });
+
+    //             fitWidth += width;
+    //             borderPositions.push(newPos.x);
+    //             if (newPos.y >= newYPos) {
+    //                 newYPos = newPos.y;
+    //             }
+    //         }
+
+    //         if (drawBorders) {
+    //             ctx.beginPath();
+    //             ctx.moveTo(0, newYPos);
+    //             ctx.lineTo(canvasWidth, newYPos);
+    //             ctx.stroke();
+    //             for (let i = 1; i < borderPositions.length; i++) {
+    //                 const border = borderPositions[i];
+    //                 ctx.beginPath();
+    //                 ctx.moveTo(border, prevYPos);
+    //                 ctx.lineTo(border, newYPos);
+    //                 ctx.stroke();
+    //             }
+    //         }
+    //         prevYPos = newYPos;
+    //     }
+
+    //     return prevYPos;
+    // }
+    // function DrawLine(symbol, prevYPos) {
+    //     var symbolWidth = getTextSize("Times New Roman", symbol, 10, "normal");
+    //     prevYPos += symbolWidth[1];
+    //     var step = symbolWidth[0] * 2;
+    //     ctx.font = `10px Times New Roman  `;
+    //     ctx.textAlign = "center";
+    //     for (var i = 0; i < canvas.width; i += step) {
+    //         ctx.fillText(symbol, i, prevYPos);
+    //     }
+    //     return prevYPos;
+    // }
+
+    // function getTextSize(font, text, size, fontWeight) {
+
+    //     var div = document.createElement("div");
+    //     div.innerHTML = text;
+    //     div.style.position = 'absolute';
+    //     div.style.top = '-9999px';
+    //     div.style.left = '-9999px';
+    //     div.style.fontFamily = font;
+    //     div.style.fontWeight = fontWeight;
+    //     div.style.fontSize = size + 'px'; // or 'px'
+    //     document.body.appendChild(div);
+    //     var size = [div.offsetWidth, div.offsetHeight];
+    //     document.body.removeChild(div);
+
+    //     console.log(size);
+    //     return size;
+    // };
+    // addLabel();
 </script>
 <script>
     dragElement(document.getElementById("dragable"));
