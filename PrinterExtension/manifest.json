@@ -23,7 +23,7 @@
         "<all_urls>"
       ],
       "js": [
-        "content.js"
+        "content.js","ReceiptBuilder.js"
       ]
     }
   ],

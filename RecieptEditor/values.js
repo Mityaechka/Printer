@@ -1,5 +1,5 @@
 class Field {
-    changeFunctionName = "RedrawReciept";
+    static changeFunctionName = "RedrawReciept";
     pattern = ``;
 
     options = {};
@@ -21,7 +21,7 @@ class Field {
     AddPattern(parentElement) {
         parentElement.innerHTML = this.pattern.replace(
             /{changeFunction}/g,
-            this.changeFunctionName
+            Field.changeFunctionName
         );
         this.element = parentElement;
     }
@@ -34,6 +34,9 @@ class Field {
                 }
             }
         }
+    }
+    GetOptions(){
+        return
     }
 }
 class TextField extends Field {
@@ -86,11 +89,144 @@ class TextField extends Field {
             this.options.text,
             { x: 0, y: startYPos },
             { font: `${this.options.style} ${this.options.fontSize}px Times New Roman  `, textAlign: this.options.align });
-        return startYPos + newPos.y;
+        return newPos.y;
 
     }
 }
+class DoubleTextField extends Field {
+    pattern = `
+    <div class="inline-container">
+        <div class="input-area area">
+            <label>Текст 1</label>
+            <input id="firstText" type="text" onchange="{changeFunction}()">
+        </div>
+        <div class="input-area area">
+            <label>Текст 2</label>
+            <input id="secondText" type="text" onchange="{changeFunction}()">
+        </div>
+    </div>
+    <div class="input-area area">
+        <label>Стиль</label>
+        <div class="input">
+            <select id="style" onchange="{changeFunction}()">
+                <option value="normal">Обычный</option>
+                <option value="italic">Курсив</option>
+                <option value="bold">Жирный</option>
+            </select>
+        </div>
+    </div>
+    <div class="input-area area">
+        <label>Размер шрифта</label>
+        <input id="fontSize" type="number" min="10" max="50" value="10" onchange="{changeFunction}()">
+    </div>
+  `;
+    constructor(options) {
+        super(options, {
+            fontSize: 30,
+            style: "normal",
+            firstText: "",
+            secondText: ""
+        });
+    }
+    DrawFileld(canvas, startYPos) {
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "black";
+        var firstPos = CanvasTextWrapper(canvas,
+            this.options.firstText,
+            { x: 0, y: startYPos },
+            { font: `${this.options.style} ${this.options.fontSize}px Times New Roman  `, textAlign: "left", maxWidth: canvas.width / 2 });
+        var secondPos = CanvasTextWrapper(canvas,
+            this.options.secondText,
+            { x: canvas.width / 2, y: startYPos },
+            { font: `${this.options.style} ${this.options.fontSize}px Times New Roman  `, textAlign: "right",maxWidth:canvas.width / 2});
+        return firstPos.y>secondPos.y?firstPos.y:secondPos.y;
 
+    }
+}
+class ComplexTextField extends Field {
+    pattern = `
+    <button onclick="ComplexTextField.AddText()">Добавить текст</button>
+    `;
+    static textPattern = `
+    <div class="input-area area">
+        <label>Текст</label>
+        <input id="text" type="text" onchange="{changeFunction}()">
+    </div>
+    <div class="input-area area">
+        <label>Выравнивание</label>
+        <div class="input">
+            <select id="align" onchange="{changeFunction}()">
+                <option value="left">Лево</option>
+                <option value="center">Центр</option>
+                <option value="right">Право</option>
+            </select>
+        </div>
+    </div>
+    <div class="input-area area">
+        <label>Стиль</label>
+        <div class="input">
+            <select id="style" onchange="{changeFunction}()">
+                <option value="normal">Обычный</option>
+                <option value="italic">Курсив</option>
+                <option value="bold">Жирный</option>
+            </select>
+        </div>
+    </div>
+    <div class="input-area area">
+        <label>Размер шрифта</label>
+        <input id="fontSize" type="number" min="10" max="50" value="10" onchange="{changeFunction}()">
+    </div>
+    <div class="input-area area">
+        <label>Заполнение</label>
+        <input id="width" min="0" value="1" type="number" onclick="{changeFunction}()">
+    </div>
+    <button onclick="ComplexTextField.RemoveText()">Удалить текст</button>
+  `;
+    constructor(options) {
+        super(options, {texts:[]});
+    }
+    DrawFileld(canvas, startYPos) {
+        var ctx = canvas.getContext("2d");
+        var canvasWidth = canvas.width;
+        var textWidth = 0;
+        this.options.texts.forEach(x => {
+            textWidth += parseInt(x.width);
+        });
+
+        var fitWidth = 0;
+        var newYPos = startYPos;
+        var textColumnWidth = canvasWidth / textWidth;
+        for (let i = 0; i < this.options.texts.length; i++) {
+            const text = this.options.texts[i];
+            var width = textColumnWidth * text.width;
+
+            var newPos = CanvasTextWrapper(canvas, text.text, 
+                { x: fitWidth, y: startYPos }, 
+                { maxWidth: width, font: `${text.style} ${text.fontSize}px Times New Roman `,textAlign:text.align });
+
+            fitWidth += width;
+            if (newPos.y >= newYPos) {
+                newYPos = newPos.y;
+            }
+        }
+        return newYPos
+    }
+
+    static AddText() {
+        var label = event.target.closest("#value");
+
+        var element = stringToHTML(ComplexTextField.textPattern.replace(
+            /{changeFunction}/g,
+            Field.changeFunctionName
+        ));
+        element.setAttribute("id", "textField");
+        label.appendChild(element);
+    }
+    static RemoveText() {
+        var text = event.target.closest("#textField");
+        text.remove();
+    }
+}
 class ImageField extends Field {
     pattern = `
     <div class="input-area area">
@@ -214,28 +350,38 @@ class TableField extends Field {
     static headerPattern = `
       <div class="input-area area">
           <label>Название</label>
-          <input id="columnName" type="text">
+          <input id="columnName" type="text" onclick="{changeFunction}()">
       </div>
       <div class="input-area area">
           <label>Заполнение</label>
-          <input id="columnWidth" min="0" value="1" type="number">
+          <input onclick="{changeFunction}()" id="columnWidth" min="0" value="1" type="number">
       </div>
-      <button onclick="TableField.RemoveHeaderColumn()">Удалить колонку</button>        
+      <button onclick="TableField.RemoveHeaderColumn();{changeFunction}()">Удалить колонку</button>        
   `;
     static rowPattern = `
-        <button  onclick="TableField.AddColumn()">Добавить колонку</button>
-        <button  onclick="TableField.RemoveRow()">Удалить строку</button>       
+        <button  onclick="TableField.AddColumn();{changeFunction}()">Добавить колонку</button>
+        <button  onclick="TableField.RemoveRow();{changeFunction}()">Удалить строку</button>       
     `;
     static columnPattern = `
         <div class="input-area area">
             <label>Значения</label>
-            <input id="columnValue" type="text">
+            <input id="columnValue" type="text" onclick="{changeFunction}()">
         </div>
         <div class="input-area area">
             <label>Заполнение</label>
-            <input id="columnWidth" min="0" value="1" type="number">
+            <input id="columnWidth" min="0" value="1" type="number" onclick="{changeFunction}()">
         </div>
-        <button onclick="TableField.RemoveColumn()">Удалить колонку</button>        
+        <div class="input-area area">
+        <label>Выравнивание</label>
+        <div class="input">
+            <select id="columnAlign" onchange="{changeFunction}()">
+                <option value="left">Лево</option>
+                <option value="center">Центр</option>
+                <option value="right">Право</option>
+            </select>
+        </div>
+    </div>
+        <button onclick="TableField.RemoveColumn();{changeFunction}()">Удалить колонку</button>        
     `;
     constructor(options) {
         super(options, {
@@ -300,7 +446,7 @@ class TableField extends Field {
                 const column = row[j];
                 var width = rowWidth * column.width;
                 var newPos = CanvasTextWrapper(canvas,
-                    column.value, { x: fitWidth, y: startYPos }, { maxWidth: width, font: `${this.options.fontSize}px Times New Roman  ` });
+                    column.value, { x: fitWidth, y: startYPos }, { maxWidth: width, font: `${this.options.fontSize}px Times New Roman  `, textAlign: column.align });
 
                 fitWidth += width;
                 rowsBorderPosition.push(newPos.x);
@@ -329,7 +475,10 @@ class TableField extends Field {
     static AddHeaderColumn() {
         var header = event.target.closest("#header");
 
-        var element = stringToHTML(TableField.headerPattern);
+        var element = stringToHTML(TableField.headerPattern.replace(
+            /{changeFunction}/g,
+            Field.changeFunctionName
+        ));
         element.setAttribute("id", "headerColumn");
         element.setAttribute("class", "inline-container");
         header.appendChild(element);
@@ -341,7 +490,10 @@ class TableField extends Field {
     static AddRow() {
         var structure = event.target.closest("#structure");
 
-        var element = stringToHTML(TableField.rowPattern);
+        var element = stringToHTML(TableField.rowPattern.replace(
+            /{changeFunction}/g,
+            Field.changeFunctionName
+        ));
         element.setAttribute("id", "row");
         structure.appendChild(element);
     }
@@ -352,7 +504,10 @@ class TableField extends Field {
     static AddColumn() {
         var row = event.target.closest("#row");
 
-        var element = stringToHTML(TableField.columnPattern);
+        var element = stringToHTML(TableField.columnPattern.replace(
+            /{changeFunction}/g,
+            Field.changeFunctionName
+        ));
         element.setAttribute("id", "column");
         element.setAttribute("class", "inline-container");
         row.appendChild(element);

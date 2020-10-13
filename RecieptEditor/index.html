@@ -20,14 +20,15 @@
         <button id="addLabel" onclick="addLabel()">Добавить</button>
     </div>
     <div id="dragable">
-        <div id="canvasHeader">Click here to move</div>
-        <canvas width="200" id="canvas">
+        <div id="canvasHeader">Чек</div>
+        <canvas width="400" height="300" id="canvas">
         </canvas>
     </div>
 </body>
 
 
 <script>
+    var template;
     const labelPattern = `
         <div class="inline-container">
             <div class="input-area">
@@ -38,6 +39,8 @@
                     <option value="indent">Отступ</option>
                     <option value="table">Таблица значений</option>
                     <option value="line">Линия</option>
+                    <option value="doubleText">Двойной текст</option>
+                    <option value="complexText">Сложное текстовое поле</option>
                 </select>
             </div>
         </div>
@@ -45,7 +48,9 @@
 
         </div>
         <div>
-            <button id="removeLabel" onclick="removeLabel()">Удалить</button>
+            <button id="RemoveLabel" onclick="RemoveLabel()">Удалить</button>
+            <button id="UpBtn" onclick="LabelUp()">Вверх</button>
+            <button id="DownBtn" onclick="LabelDown()">Вниз</button>
         </div>
     `;
 
@@ -53,6 +58,42 @@
     let canvas = document.getElementById("canvas");
     let ctx = canvas.getContext("2d");
 
+    function LabelUp() {
+        var label = event.target.closest("#label");
+        var prev = label.previousElementSibling;
+        labels.insertBefore(label, prev);
+        CheckUpDown();
+
+        RedrawReciept();
+    }
+    function LabelDown() {
+        var label = event.target.closest("#label");
+        var next = label.nextElementSibling;
+        labels.insertBefore(label, next.nextElementSibling);
+        CheckUpDown();
+
+        RedrawReciept();
+    }
+    function CheckUpDown() {
+        var l = labels.querySelectorAll("#label");
+        for (let i = 0; i < l.length; i++) {
+            const label = l[i];
+            if (l.length == 1) {
+                label.querySelector("#UpBtn").setAttribute("hidden", "hidden");
+                label.querySelector("#DownBtn").setAttribute("hidden", "hidden");
+            } else if (i == 0) {
+                label.querySelector("#UpBtn").setAttribute("hidden", "hidden");
+                label.querySelector("#DownBtn").removeAttribute("hidden");
+            } else if (i == l.length - 1) {
+                label.querySelector("#DownBtn").setAttribute("hidden", "hidden");
+                label.querySelector("#UpBtn").removeAttribute("hidden");
+            } else {
+                label.querySelector("#UpBtn").removeAttribute("hidden");
+                label.querySelector("#DownBtn").removeAttribute("hidden");
+            }
+
+        }
+    }
     function changeAreaType(label) {
         if (!label)
             label = event.target.closest("#label");
@@ -62,6 +103,12 @@
         switch (type.value) {
             case "text":
                 field = new TextField();
+                break;
+            case "doubleText":
+                field = new DoubleTextField();
+                break;
+            case "complexText":
+                field = new ComplexTextField();
                 break;
             case "image":
                 field = new ImageField();
@@ -81,6 +128,7 @@
         }
         field.AddPattern(label.querySelector("#value"));
         field.FillPattern();
+        CheckUpDown();
         RedrawReciept();
     }
     function addLabel() {
@@ -93,9 +141,11 @@
         element.setAttribute("class", "label-conatainer")
         labelsDiv.appendChild(element);
         changeAreaType(element);
+        CheckUpDown();
         RedrawReciept();
     }
     async function RedrawReciept() {
+        var template = [];
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "black";
@@ -109,35 +159,74 @@
             if (!type)
                 return;
             var field = new Field();
+            var fieldTemplate ={};
+            fieldTemplate.type = type.value;
             switch (type.value) {
                 case "text":
-                    field = new TextField({
+                    var options ={
                         align: valueArea.querySelector("#align").value,
                         fontSize: valueArea.querySelector("#fontSize").value,
                         style: valueArea.querySelector("#style").value,
                         text: valueArea.querySelector("#text").value,
-                    });
+                    }
+                    fieldTemplate.options = options;
+                    field = new TextField(options);
+                    break;
+                case "doubleText":
+                    var options ={
+                        fontSize: valueArea.querySelector("#fontSize").value,
+                        style: valueArea.querySelector("#style").value,
+                        firstText: valueArea.querySelector("#firstText").value,
+                        secondText: valueArea.querySelector("#secondText").value
+                    };
+                    field = new DoubleTextField(options);
+                    fieldTemplate.options = options;
+                    break;
+                case "complexText":
+                    var textDivs = valueArea.querySelectorAll("#textField");
+                    var texts= [];
+                    for (let i = 0; i < textDivs.length; i++) {
+                        const textDiv = textDivs[i];
+                        texts.push({
+                            text:textDiv.querySelector("#text").value,
+                            align:textDiv.querySelector("#align").value,
+                            style:textDiv.querySelector("#style").value,
+                            fontSize:textDiv.querySelector("#fontSize").value,
+                            width:textDiv.querySelector("#width").value
+                        });
+                    }
+                    var options = {
+                        texts:texts
+                    };
+                    field = new ComplexTextField(options);
+                    fieldTemplate.options = options;
                     break;
                 case "image":
                     var img = new Image;
                     img.src = URL.createObjectURL(valueArea.querySelector("#image").files[0]);
                     await loadImage(img);
-                    field = new ImageField({
+                    var options = {
                         align: valueArea.querySelector("#align").value,
                         width: valueArea.querySelector("#width").value,
                         height: valueArea.querySelector("#height").value,
                         image: img
-                    });
+                    };
+                    field = new ImageField(options);
+                    fieldTemplate.options = options;
                     break;
                 case "indent":
-                    field = new IndentField({
+                    var options = {
                         indent: valueArea.querySelector("#indent").value
-                    });
+                    };
+                    field = new IndentField(options);
+                    fieldTemplate.options = options;
                     break;
                 case "line":
-                    field = new LineField({
+                    var options ={
                         symbol: valueArea.querySelector("#symbol").value
-                    });
+                    };
+                    field = new LineField(options);
+                    fieldTemplate.options = options;
                     break;
                 case "table":
                     var showBorder = valueArea.querySelector("#showBorder").checked;
@@ -163,22 +252,33 @@
                             row.push({
                                 value: columnDiv.querySelector("#columnValue").value,
                                 width: columnDiv.querySelector("#columnWidth").value,
+                                align: columnDiv.querySelector("#columnAlign").value,
                             });
                         }
                         rows.push(row);
                     }
-                    field = new TableField({
+                    var options = {
                         fontSize: fontSize,
                         showBorder: showBorder,
                         headers: headers,
                         rows: rows
-                    });
-                    //prevYPos = DrawTable(columns, headerFontSize, true, true, prevYPos)
+                    };
+                    field = new TableField(options);
+                    fieldTemplate.options = options;
+
                     break;
 
             }
+            template.push(fieldTemplate);
             prevYPos = field.DrawFileld(canvas, prevYPos);
         }
+        console.log(JSON.stringify(template));
+    }
+    function RemoveLabel() {
+        var label = event.target.closest("#label");
+        label.remove();
+        CheckUpDown();
+        RedrawReciept();
     }
     var stringToHTML = function (str) {
         var dom = document.createElement('div');
@@ -193,246 +293,7 @@
             };
         });
     };
-    // const columnPattern = `
-    //     <div class="input-area area">
-    //         <label>Название</label>
-    //         <input id="columnName" type="text">
-    //     </div>
-    //     <div class="input-area area">
-    //         <label>Значения</label>
-    //         <input id="columnValue" type="text">
-    //     </div>
-    //     <div class="input-area area">
-    //         <label>Заполнение</label>
-    //         <input id="columnWidth" min="0" value="1" type="number">
-    //     </div>
-    //     <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить колонку</button>        
-    // `;
-    // const rowPattern = `
-    //     <button  id="addColumnBtn" onclick="addColumn()">Добавить колонку</button>
-    //     <button data-column-index="{index}" id="removeColumnBtn" onclick="removeColumn()">Удалить строку</button>       
-    // `;
-    // function removeColumn() {
-    //     var column = event.target.parentElement;
-    //     var header = column.parentElement;
-    //     var index = Array.prototype.indexOf.call(header.querySelectorAll("#column"), column);
-    //     column.remove();
-    // }
 
-    // function addColumn() {
-    //     var header = event.target.parentElement;
-
-    //     var element = stringToHTML(columnPattern);
-    //     element.setAttribute("id", "column");
-    //     element.setAttribute("class", "inline-container");
-    //     header.appendChild(element);
-    // }
-    // function addRow() {
-    //     var header = event.target.parentElement;
-
-    //     var element = stringToHTML(rowPattern);
-    //     element.setAttribute("id", "row");
-    //     header.appendChild(element);
-    // }
-
-    // function addLabel() {
-    //     var index = labelsDiv.querySelectorAll("[id^=label]").length;
-    //     var pattern = labelPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
-    //     var element = stringToHTML(pattern);
-
-    //     element.querySelector("#type").value = "text";
-    //     element.setAttribute("id", `label${index}`);
-    //     element.setAttribute("class", "label-conatainer")
-    //     labelsDiv.appendChild(element);
-
-    //     addAreaPattern(element, tableArePattern);
-    // }
-    // function addAreaPattern(element, areaPattern) {
-    //     var btn = element.querySelector("#removeLabel");
-    //     if (btn) {
-    //         var index = btn.dataset.index;
-    //         if (index) {
-    //             var pattern = areaPattern.replace(/{index}/g, index).replace(/{number}/g, (index + 1));
-    //             element.querySelector("#value").innerHTML = pattern;
-    //         }
-    //     }
-
-    // }
-    // function removeLabel() {
-    //     var button = event.target;
-    //     var index = button.dataset.index;
-    //     if (index) {
-    //         var label = document.getElementById(`label${index}`);
-    //         if (label)
-    //             label.remove();
-    //     }
-    // }
-
-
-    // function RedrawReciept() {
-    //     ctx.fillStyle = "white";
-    //     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    //     ctx.fillStyle = "black";
-
-    //     var labels = labelsDiv.querySelectorAll("[id^=label]");
-    //     var prevYPos = 0;
-    //     labels.forEach(label => {
-    //         var type = label.querySelector("#type");
-    //         var valueArea = label.querySelector("#value");
-    //         if (!type)
-    //             return;
-    //         switch (type.value) {
-    //             case "text":
-    //                 var align = valueArea.querySelector("#align").value;
-    //                 var underline = valueArea.querySelector("#underline").value;
-    //                 var fontSize = valueArea.querySelector("#fontSize").value;
-    //                 var style = valueArea.querySelector("#style").value;
-    //                 var text = valueArea.querySelector("#text").value;
-
-    //                 prevYPos = DrawText(text, align, fontSize, style, prevYPos);
-    //                 break;
-    //             case "image":
-    //                 var align = valueArea.querySelector("#align").value;
-    //                 var width = valueArea.querySelector("#width").value;
-    //                 var height = valueArea.querySelector("#height").value;
-    //                 const prev = prevYPos;
-    //                 var img = new Image;
-    //                 img.onload = function () {
-    //                     DrawImage(img, align, width, height, prev);
-    //                 }
-    //                 img.src = URL.createObjectURL(valueArea.querySelector("#image").files[0]);
-    //                 prevYPos += parseInt(height);
-
-    //                 break;
-    //             case "indent":
-    //                 var indent = valueArea.querySelector("#indent").value;
-    //                 prevYPos += parseInt(indent);
-    //                 break;
-    //             case "table":
-    //                 var rows = [];
-
-    //                 var rowsDiv = valueArea.querySelectorAll("#row");
-    //                 var headerFontSize = valueArea.querySelector("#headerFontSize").value;
-
-    //                 for (let i = 0; i < rowsDiv.length; i++) {
-    //                     const rowDiv = rowsDiv[i];
-    //                     var columns = rowDiv.querySelectorAll("#column");
-    //                     var row = []
-    //                     for (let j = 0; j < columns.length; j++) {
-    //                         const columnDiv = columns[j];
-    //                         row.push({
-    //                             name: columnDiv.querySelector("#columnName").value,
-    //                             value: columnDiv.querySelector("#columnValue").value,
-    //                             width: columnDiv.querySelector("#columnWidth").value,
-    //                         });
-    //                     }
-    //                     rows.push(row);
-    //                 }
-    //                 prevYPos = DrawTable(columns, headerFontSize, true, true, prevYPos)
-    //                 break;
-    //             case "line":
-    //                 var symbol = valueArea.querySelector("#symbol").value;
-    //                 prevYPos = DrawLine(symbol, prevYPos);
-    //                 break;
-    //         }
-    //     });
-    // }
-    // function DrawImage(image, align, width, height, prevYPos) {
-    //     var xPos = 0;
-    //     switch (align) {
-    //         case "center":
-    //             xPos = canvas.width / 2 - width / 2;
-    //             break;
-    //         case "left":
-    //             xPos = 0;
-    //             break;
-    //         case "right":
-    //             xPos = canvas.width - width;
-    //             break;
-    //     }
-    //     ctx.drawImage(image, xPos, prevYPos, width, height);
-    //     return prevYPos + height;
-
-    // }
-    // function DrawText(text, align, fontSize, style, prevYPos) {
-    //     ctx.fillStyle = "black";
-
-    //     var newPos = CanvasTextWrapper(canvas, text, { x: 0, y: prevYPos }, { font: `${style} ${fontSize}px Times New Roman  `, textAlign: align });
-
-    //     return prevYPos + newPos.y;
-    // }
-    // function DrawTable(columns, headerFontSize, showHeaders, drawBorders, prevYPos) {
-    //     var canvasWidth = canvas.width;
-    //     var tableWidth = 0;
-    //     columns.forEach(x => {
-    //         tableWidth += parseInt(x.width);
-    //     });
-    //     if (showHeaders) {
-    //         var borderPositions = [];
-    //         var fitWidth = 0;
-    //         var newYPos = prevYPos;
-    //         var columnWidth = canvasWidth / tableWidth;
-    //         for (let i = 0; i < columns.length; i++) {
-    //             const column = columns[i];
-    //             var width = columnWidth * column.width;
-    //             ctx.fillStyle = "black";
-    //             var newPos = CanvasTextWrapper(canvas, column.name, { x: fitWidth, y: prevYPos }, { maxWidth: width, font: `${headerFontSize}px Times New Roman  ` });
-
-    //             fitWidth += width;
-    //             borderPositions.push(newPos.x);
-    //             if (newPos.y >= newYPos) {
-    //                 newYPos = newPos.y;
-    //             }
-    //         }
-
-    //         if (drawBorders) {
-    //             ctx.beginPath();
-    //             ctx.moveTo(0, newYPos);
-    //             ctx.lineTo(canvasWidth, newYPos);
-    //             ctx.stroke();
-    //             for (let i = 1; i < borderPositions.length; i++) {
-    //                 const border = borderPositions[i];
-    //                 ctx.beginPath();
-    //                 ctx.moveTo(border, prevYPos);
-    //                 ctx.lineTo(border, newYPos);
-    //                 ctx.stroke();
-    //             }
-    //         }
-    //         prevYPos = newYPos;
-    //     }
-
-    //     return prevYPos;
-    // }
-    // function DrawLine(symbol, prevYPos) {
-    //     var symbolWidth = getTextSize("Times New Roman", symbol, 10, "normal");
-    //     prevYPos += symbolWidth[1];
-    //     var step = symbolWidth[0] * 2;
-    //     ctx.font = `10px Times New Roman  `;
-    //     ctx.textAlign = "center";
-    //     for (var i = 0; i < canvas.width; i += step) {
-    //         ctx.fillText(symbol, i, prevYPos);
-    //     }
-    //     return prevYPos;
-    // }
-
-    // function getTextSize(font, text, size, fontWeight) {
-
-    //     var div = document.createElement("div");
-    //     div.innerHTML = text;
-    //     div.style.position = 'absolute';
-    //     div.style.top = '-9999px';
-    //     div.style.left = '-9999px';
-    //     div.style.fontFamily = font;
-    //     div.style.fontWeight = fontWeight;
-    //     div.style.fontSize = size + 'px'; // or 'px'
-    //     document.body.appendChild(div);
-    //     var size = [div.offsetWidth, div.offsetHeight];
-    //     document.body.removeChild(div);
-
-    //     console.log(size);
-    //     return size;
-    // };
-    // addLabel();
 </script>
 <script>
     dragElement(document.getElementById("dragable"));
@@ -440,39 +301,32 @@
     function dragElement(elmnt) {
         var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
         if (document.getElementById(elmnt.id + "header")) {
-            // if present, the header is where you move the DIV from:
             document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
         } else {
-            // otherwise, move the DIV from anywhere inside the DIV:
             elmnt.onmousedown = dragMouseDown;
         }
 
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
-            // get the mouse cursor position at startup:
             pos3 = e.clientX;
             pos4 = e.clientY;
             document.onmouseup = closeDragElement;
-            // call a function whenever the cursor moves:
             document.onmousemove = elementDrag;
         }
 
         function elementDrag(e) {
             e = e || window.event;
             e.preventDefault();
-            // calculate the new cursor position:
             pos1 = pos3 - e.clientX;
             pos2 = pos4 - e.clientY;
             pos3 = e.clientX;
             pos4 = e.clientY;
-            // set the element's new position:
             elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
             elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
         }
 
         function closeDragElement() {
-            // stop moving when mouse button is released:
             document.onmouseup = null;
             document.onmousemove = null;
         }

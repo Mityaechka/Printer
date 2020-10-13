@@ -288,15 +288,21 @@
       var skipLineOnMatch = multiNewLineDelimiter + " ";
       for (var i = 0; i < lines.length; i++) {
         textPos.y = parseInt(textPos.y) + lineHeight;
+        var xPos = textPos.x;
+        if (opts.textAlign == "center") {
+          xPos = xPos + MAX_TXT_WIDTH/2;
+        } else if (opts.textAlign == "right") {
+          xPos = xPos + MAX_TXT_WIDTH;
+        }
         if (lines[i] !== skipLineOnMatch) {
-          context.fillText(lines[i], textPos.x, textPos.y);
+          context.fillText(lines[i], xPos, textPos.y);
 
           if (opts.strokeText) {
-            context.strokeText(lines[i], textPos.x, textPos.y);
+            context.strokeText(lines[i], xPos, textPos.y);
           }
 
           if (opts.textDecoration.toLocaleLowerCase() === "underline") {
-            underline(lines[i], textPos.x, textPos.y);
+            underline(lines[i], xPos, textPos.y);
           }
         }
       }
@@ -305,11 +311,11 @@
     function setHorizAlign() {
       context.textAlign = opts.textAlign;
 
-      if (opts.textAlign == "center") {
-        textPos.x = EL_WIDTH / 2;
-      } else if (opts.textAlign == "right") {
-        textPos.x = EL_WIDTH - opts.paddingX;
-      } //else {
+      // if (opts.textAlign == "center") {
+      //   textPos.x = textPos.x + MAX_TXT_WIDTH/2;
+      // } else if (opts.textAlign == "right") {
+      //   textPos.x = textPos.x + MAX_TXT_WIDTH;
+      // } //else {
       //     textPos.x = opts.paddingX;
       // }
     }

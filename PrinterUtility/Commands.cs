@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Net.Sockets;
+using PrinterUtility;
 
 namespace ESCPOS
 {
@@ -258,6 +259,8 @@ namespace ESCPOS
             }
             //File.WriteAllText(tempFile, "Привет мир\n", Encoding.Default);
             File.WriteAllBytes(tempFile, data);
+            //Program.PrintString(printerAddress);
+            //Program.PrintString(tempFile);
             File.Copy(tempFile, printerAddress, true);
         }
     }

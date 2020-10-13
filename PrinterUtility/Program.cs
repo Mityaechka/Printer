@@ -18,56 +18,64 @@ using System.Text.RegularExpressions;
 
 namespace PrinterUtility
 {
-    partial class Program
+    public class Program
     {
         static string computerName = Environment.MachineName.ToString();
+        static string path = $"\\\\{computerName}\\w180";
+        static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+        {
+            //Console.WriteLine(e.ExceptionObject.ToString());
+            //Console.WriteLine("Press Enter to continue");
+            PrintString(e.ExceptionObject.ToString());
+        }
         public static void Main(string[] args)
         {
-            PrintString("!!!");
+            PrintString("test");
+            System.AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
             JObject data;
+            PrintString("0");
             while ((data = Read()) != null)
             {
+                PrintString("1");
                 if (!ProcessMessage(data))
                     return;
             }
         }
         public static JObject Read()
         {
-            var stdin = Console.OpenStandardInput();
-            var length = 0;
-
-            var lengthBytes = new byte[4];
-            stdin.Read(lengthBytes, 0, 4);
-            length = BitConverter.ToInt32(lengthBytes, 0);
-
-            var buffer = new char[length];
-            using (var reader = new StreamReader(stdin))
+            Stream stdin = Console.OpenStandardInput();
+            int length = 0;
+            byte[] bytes = new byte[4];
+            stdin.Read(bytes, 0, 4);
+            length = System.BitConverter.ToInt32(bytes, 0);
+            string input = "";
+            for (int i = 0; i < length; i++)
             {
-                while (reader.Peek() >= 0)
-                {
-                    reader.Read(buffer, 0, buffer.Length);
-                }
+                input += (char)stdin.ReadByte();
+                
             }
-
-            return (JObject)JsonConvert.DeserializeObject<JObject>(new string(buffer));
+            return (JObject)JsonConvert.DeserializeObject<JObject>(input);
         }
         public static bool ProcessMessage(JObject data)
         {
             var commands = data["commands"];
+            PrintString("2");
             if (commands != null)
             {
+                
                 foreach (var command in commands)
                 {
+                    
                     if (command["print_string"] != null)
                     {
                         var str = command["print_string"].Value<string>();
+                        PrintString("4");
                         PrintString(str);
                     }
                     else if (command["print_canvas"] != null)
                     {
-                        Write("Все ок");
-                        PrintString("OK");
                         var canvasString = command["print_canvas"].Value<string>();
+                        PrintString("5");
                         PrintCanvas(canvasString);
                     }
                     else if (command["exit"] != null)
@@ -79,10 +87,10 @@ namespace PrinterUtility
             }
             return true;
         }
-        static void PrintString(string data)
+        public static void PrintString(string data)
         {
             var bytes = GetBytes(data);
-            bytes.Print($"\\\\{computerName}\\w180");
+            bytes.Print(path);
         }
         static void PrintCanvas(string base64string)
         {
@@ -94,7 +102,7 @@ namespace PrinterUtility
                 {
                     bw.Write(bytes);
 
-                    GetImageFromStream(fs).Print($"\\\\{computerName}\\w180");
+                    GetImageFromStream(fs).Print(path);
                     bw.Close();
                 }
             }
